@@ -5,6 +5,7 @@ using Basket.Core.Repositories;
 using Basket.Infrastructure.Repositories;
 using Discount.Grpc.Protos;
 using HealthChecks.UI.Client;
+using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -15,12 +16,12 @@ namespace Basket.API;
 public class Startup
 {
     public IConfiguration Configuration { get; set; }
-    
+
     public Startup(IConfiguration configuration)
     {
         Configuration = configuration;
     }
-    
+
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddApiVersioning();
@@ -45,6 +46,15 @@ public class Startup
         });
         services.AddHealthChecks()
             .AddRedis(Configuration["CacheSettings:ConnectionString"], "Redis Health", HealthStatus.Degraded);
+        services.AddMassTransit(config =>
+        {
+            config.UsingRabbitMq(
+                (ctx, cfg) =>
+                {
+                    cfg.Host(Configuration["EventBusSettings:HostAddress"]);
+                });
+        });
+        services.AddMassTransitHostedService();
     }
 
     public void Configure(IApplicationBuilder app, IHostEnvironment environment)

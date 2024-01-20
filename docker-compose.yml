@@ -9,9 +9,11 @@ services:
     image: postgres
   orderdb:
     image: mcr.microsoft.com/azure-sql-edge
+    
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
   pgadmin:
     image: dpage/pgadmin4
-
   portainer:
     image: portainer/portainer-ce
   
@@ -35,6 +37,12 @@ services:
     build:
       context: .
       dockerfile: Services/Ordering/Ordering.API/Dockerfile
+
+  ocelotapigw:
+    image: ${DOCKER_REGISTRY-}ocelotapigw
+    build:
+      context: .
+      dockerfile: ApiGateways/Ocelot.ApiGateway/Dockerfile
 
 volumes:
   mongo_data:
